@@ -17,7 +17,7 @@ export default function Home() {
   const handlePredict = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://127.0.0.1:8000/predict", {
+      const response = await axios.post("https://bio-kinetic-gas-predictor.onrender.com/predict", {
         temperature: temp,
         days_stagnant: days,
         source_type: source,
