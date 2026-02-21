@@ -1,29 +1,24 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware # <--- NEW IMPORT
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import pandas as pd
 import os
 
+# 1. Initialize the App
 app = FastAPI(title="Gas Prediction API", version="1.0")
 
-# --- NEW SECTION: ADD CORS ---
-# This allows the Next.js frontend (http://localhost:3000) to talk to this API
+# --- CORS CONFIGURATION ---
+# This allows the Next.js frontend to talk to this API from any URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow Frontend
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["*"], # Allow all methods (POST, GET, etc.)
+    allow_methods=["*"], 
     allow_headers=["*"],
 )
 # -----------------------------
 
-class PredictionRequest(BaseModel):
-    temperature: float
-    days_stagnant: float
-    source_type: str 
-
-# ... (Keep the rest of your code exactly the same) ...
 # 2. Define the Input Data Structure (Schema)
 class PredictionRequest(BaseModel):
     temperature: float
@@ -31,7 +26,6 @@ class PredictionRequest(BaseModel):
     source_type: str  # Must be "Sewage" or "Rainwater"
 
 # 3. Load Models (Global Variables)
-# We load them once at startup so we don't waste time loading them for every request.
 current_dir = os.path.dirname(os.path.abspath(__file__))
 model_dir = os.path.join(current_dir, '../ml_models')
 
@@ -67,17 +61,17 @@ def predict_gas(data: PredictionRequest):
         raise HTTPException(status_code=400, detail="Invalid Source Type. Use 'Sewage' or 'Rainwater'.")
 
     # 5. Logic Layer: Health Assessment
-    # Simple Rule-Based Logic
+    # Updated Rule-Based Logic with higher thresholds
     risk_level = "Low"
     health_advice = "No significant risk."
     
-    if prediction > 50:
+    if prediction > 100:
         risk_level = "CRITICAL"
         health_advice = "Evacuate immediately. Toxicity fatal."
-    elif prediction > 20:
+    elif prediction > 40:
         risk_level = "High"
         health_advice = "Wear respiratory protection. Irritation likely."
-    elif prediction > 10:
+    elif prediction > 20:
         risk_level = "Moderate"
         health_advice = "Ventilation recommended."
 
